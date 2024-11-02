@@ -20,7 +20,7 @@ export class CustomHttpException extends HttpException {
   constructor(payload: CustomHttpExceptionResponse) {
     const exceptionResponse: CustomHttpExceptionResponse = {
       message: payload.message || ExceptionTitleList.InternalServerError,
-      code: payload.code || StatusCodesList.InternalServerError,
+      code: payload.code + 10 * 100 || StatusCodesList.InternalServerError,
       statusCode: payload.statusCode || HttpStatus.INTERNAL_SERVER_ERROR,
       error: payload.error || "Có lỗi xảy ra",
       data: payload.data,
