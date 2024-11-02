@@ -4,10 +4,14 @@ import { TokenType } from "../../common/constants/token-type";
 import { CustomHttpException } from "../../common/exception/custom-http.exception";
 import { generateHash, validateHash } from "../../common/utils";
 
-import { Social, UserEntity } from "../../entities/user.entity";
+import { UserEntity } from "../../entities/user.entity";
 import { UserService } from "../user/user.service";
 import type { UserLoginDto } from "./dto/UserLoginDto";
-import { UserRegisterDto } from "./dto/UserRegisterDto";
+import {
+  ManagerRegisterDto,
+  MemberRegisterDto,
+  StaffRegisterDto as StaffRegisterDto,
+} from "./dto/UserRegisterDto";
 import { JwtService } from "../jwt/jwt.service";
 @Injectable()
 export class AuthService {
@@ -21,19 +25,20 @@ export class AuthService {
     try {
       const user = await this.userService.findOne(
         {
-          username: userLoginDto.username,
+          phone: userLoginDto.phone,
+          role: userLoginDto.role,
         },
         true,
       );
 
       if (!user) {
-        throw new Error("User not found");
+        throw new Error("Không tìm thấy tài khoản");
       }
 
       const isPasswordValid = await validateHash(userLoginDto.password, user.password);
 
       if (!isPasswordValid) {
-        throw new Error("Password doesn't match");
+        throw new Error("Mật khẩu không đúng");
       }
       return user;
     } catch (error) {
@@ -44,12 +49,6 @@ export class AuthService {
         message: "Tài khoản hoặc mật khẩu không đúng",
       });
     }
-  }
-
-  async register(userRegisterDto: UserRegisterDto): Promise<UserEntity> {
-    const user = await this.userService.createUser(userRegisterDto);
-    // const token = this.jwtService.generateVerifyEmailToken(user.id);
-    return user;
   }
 
   async verifyEmail(token: string): Promise<void> {
