@@ -2,16 +2,12 @@ import { Column, Entity, OneToOne, OneToMany, ManyToMany } from "typeorm";
 import { BaseEntity } from "../common/abstract.entity";
 import { UserRole } from "../common/enum/user-role";
 import { VirtualColumn } from "../decorators";
-import { UserDto } from "../modules/user/dtos/user.dto";
+import { MemberRank } from "../common/enum/member-rank";
 
-export type Social = "google" | "facebook" | "github";
 @Entity({ name: "users" })
 export class UserEntity extends BaseEntity {
-  @Column({ unique: true })
-  username: string;
-
   @Column()
-  name: string;
+  fullName: string;
 
   @Column()
   password: string;
@@ -19,62 +15,49 @@ export class UserEntity extends BaseEntity {
   @Column({ nullable: true })
   phone?: string;
 
-  @Column({ nullable: true })
-  avatar?: string;
-
-  @Column({ default: "active" })
-  status: string;
-
-  // TODO: Next use rbac
-  @Column({ enum: UserRole, default: UserRole.USER })
+  @Column({ enum: UserRole, default: UserRole.MEMBER })
   role: UserRole;
 
   @Column({ nullable: true })
-  social: Social;
+  email?: string;
 
   @Column({ nullable: true })
-  bio?: string;
+  address?: string;
+  // ================== Staff ==================
 
   @Column({ nullable: true })
-  title?: string;
+  shift?: string;
+
+  // ================== Member ==================
 
   @Column({ nullable: true })
-  facebook_url?: string;
+  card_id?: string;
 
   @Column({ nullable: true })
-  twitter_url?: string;
+  cccd?: string;
 
   @Column({ nullable: true })
-  linkedin_url?: string;
+  birthday?: Date;
 
   @Column({ nullable: true })
-  youtube_url?: string;
-
-  @VirtualColumn()
-  fullName?: string;
+  isMale?: boolean;
 
   @Column({ nullable: true })
-  bank_number?: string;
+  amount_deposited?: number;
 
   @Column({ nullable: true })
-  bank_owner_name?: string;
+  current_coin?: number;
 
   @Column({ nullable: true })
-  bank_code?: string;
+  current_point?: number;
 
-  // @OneToOne(() => UserSettingsEntity, (userSettings) => userSettings.user)
-  // settings?: UserSettingsEntity;
+  @Column({ nullable: true, enum: MemberRank, default: MemberRank.MEMBER })
+  member_rank?: MemberRank;
 
-  // @BeforeInsert()
-  // hashPassword() {
-  //   this.password = generateHash(this.password);
-  // }
-
-  toDto(): UserDto {
+  toDto() {
     delete this.password;
     return {
       ...this,
-      fullName: this.fullName,
     };
   }
 }
