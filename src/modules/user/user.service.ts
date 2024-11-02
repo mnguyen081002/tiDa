@@ -1,26 +1,19 @@
-import {
-  HttpStatus,
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from "@nestjs/common";
+import { HttpStatus, Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { plainToClass } from "class-transformer";
 import type { FindOptionsWhere } from "typeorm";
 import { Repository } from "typeorm";
 
-import { PageDto } from "../../common/dto/page.dto";
-// import { ValidatorService } from '../../shared/services/validator.service';
-import { UserRegisterDto } from "../auth/dto/UserRegisterDto";
-import type { UserDto, UserUpdateRequest } from "./dtos/user.dto";
-import type { UsersPageOptionsDto } from "./dtos/users-page-options.dto";
-import { Social, UserEntity } from "../../entities/user.entity";
-import { PageMetaDto } from "../../common/dto/page-meta.dto";
+import {
+  ManagerRegisterDto,
+  MemberRegisterDto,
+  StaffRegisterDto,
+  UserRegisterDto,
+} from "../auth/dto/UserRegisterDto";
+import { UserEntity } from "../../entities/user.entity";
 import { CustomHttpException } from "../../common/exception/custom-http.exception";
 import { StatusCodesList } from "../../common/constants/status-codes-list.constants";
 import { generateHash } from "../../common/utils";
-import { RedisClientType } from "redis";
+import { UserRole } from "../../common/enum/user-role";
 
 @Injectable()
 export class UserService {
@@ -96,62 +89,98 @@ export class UserService {
     return queryBuilder.getOne();
   }
 
-  async createUser(userRegisterDto: UserRegisterDto): Promise<UserEntity> {
+  async createStaff(staffRegisterDto: StaffRegisterDto): Promise<UserEntity> {
     const findUser = await this.userRepository.findOne({
       where: {
-        username: userRegisterDto.username,
+        phone: staffRegisterDto.phone,
       },
     });
-    const hashPassword = generateHash(userRegisterDto.password);
+    const hashPassword = generateHash(staffRegisterDto.password);
 
     if (!findUser) {
-      const user = this.userRepository.create({ ...userRegisterDto, password: hashPassword });
-      const userRecord = await this.userRepository.save(user);
-      return user;
+      const user = this.userRepository.create({ ...staffRegisterDto, password: hashPassword });
+      return await this.userRepository.save(user);
     }
 
     throw new CustomHttpException({
       code: StatusCodesList.EmailAlreadyExists,
       statusCode: HttpStatus.BAD_REQUEST,
-      message: `Username ${userRegisterDto.username} đã tồn tại`,
+      message: `Số điện thoại ${staffRegisterDto.phone} đã tồn tại`,
     });
   }
 
-  // async getUsers(pageOptionsDto: UsersPageOptionsDto): Promise<PageDto<UserDto>> {
-  //   const q = this.userRepository
-  //     .createQueryBuilder("user")
-  //     .select([
-  //       "user.id",
-  //       "user.email",
-  //       "user.username",
-  //       "user.role",
-  //       "user.phone",
-  //       "user.created_at",
-  //       "user.status",
-  //       "user.avatar",
-  //       "user.updated_at",
-  //     ])
-  //     .leftJoinAndSelect("user.settings", "settings");
+  async createMember(memberRegisterDto: MemberRegisterDto): Promise<UserEntity> {
+    const findUser = await this.userRepository.findOne({
+      where: {
+        phone: memberRegisterDto.phone,
+      },
+    });
+    const hashPassword = generateHash(memberRegisterDto.password);
 
-  //   pageOptionsDto.role && q.andWhere("user.role = :role", { role: pageOptionsDto.role });
-  //   pageOptionsDto.search &&
-  //     q.andWhere("user.username ILIKE :username", {
-  //       username: `%${pageOptionsDto.search}%`,
-  //     });
-    
-  //   // TODO: Need optimize
-  //   const [users, itemCount] = await q
-  //     .take(pageOptionsDto.take)
-  //     .skip(pageOptionsDto.skip)
-  //     .orderBy(`user.${pageOptionsDto.sort}`, pageOptionsDto.order)
-  //     .getManyAndCount();
+    if (!findUser) {
+      const user = this.userRepository.create({ ...memberRegisterDto, password: hashPassword });
+      return await this.userRepository.save(user);
+    }
 
-  //   return new PageDto<UserDto>(
-  //     users,
-  //     new PageMetaDto({
-  //       itemCount,
-  //       pageOptionsDto,
-  //     }),
-  //   );
-  // }
+    throw new CustomHttpException({
+      code: StatusCodesList.EmailAlreadyExists,
+      statusCode: HttpStatus.BAD_REQUEST,
+      message: `Số điện thoại ${memberRegisterDto.phone} đã tồn tại`,
+    });
+  }
+
+  async createManager(managerRegisterDto: ManagerRegisterDto): Promise<UserEntity> {
+    const findUser = await this.userRepository.findOne({
+      where: {
+        phone: managerRegisterDto.phone,
+      },
+    });
+    const hashPassword = generateHash(managerRegisterDto.password);
+
+    if (!findUser) {
+      const user = this.userRepository.create({ ...managerRegisterDto, password: hashPassword });
+      return await this.userRepository.save(user);
+    }
+
+    throw new CustomHttpException({
+      code: StatusCodesList.EmailAlreadyExists,
+      statusCode: HttpStatus.BAD_REQUEST,
+      message: `Số điện thoại ${managerRegisterDto.phone} đã tồn tại`,
+    });
+  }
+
+  async findManagerByPhone(phone: string): Promise<UserEntity | null> {
+    return this.userRepository.findOne({
+      where: {
+        phone,
+        role: UserRole.MANAGER,
+      },
+    });
+  }
+
+  async findStaffByPhone(phone: string): Promise<UserEntity | null> {
+    return this.userRepository.findOne({
+      where: {
+        phone,
+        role: UserRole.STAFF,
+      },
+    });
+  }
+
+  async findMemberByPhone(phone: string): Promise<UserEntity | null> {
+    return this.userRepository.findOne({
+      where: {
+        phone,
+        role: UserRole.MEMBER,
+      },
+    });
+  }
+
+  async findMemberByCardId(cardId: string): Promise<UserEntity | null> {
+    return this.userRepository.findOne({
+      where: {
+        card_id: cardId,
+      },
+    });
+  }
 }

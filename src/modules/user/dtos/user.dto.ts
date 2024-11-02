@@ -1,26 +1,6 @@
 import { Contains, IsOptional, IsString, IsUrl, Length } from "class-validator";
 import { BaseDto } from "../../../common/abstract.dto";
 
-export class UserDto extends BaseDto {
-  username?: string;
-
-  avatar?: string;
-
-  bio?: string;
-
-  facebook_url?: string;
-
-  twitter_url?: string;
-
-  linkedin_url?: string;
-
-  youtube_url?: string;
-
-  title?: string;
-
-  isActive?: boolean;
-}
-
 export class UserUpdateRequest extends BaseDto {
   @IsString()
   @Length(1, 40)
