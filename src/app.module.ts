@@ -11,6 +11,8 @@ import { JwtModule } from "@nestjs/jwt";
 import { ScheduleModule } from "@nestjs/schedule";
 import typeorm from "./config/typeorm";
 import { HealthModule } from "./modules/health/health.module";
+import { UserManagementModule } from "./modules/user-management/user-management.module";
+import { CoinModule } from "./modules/coin/coin.module";
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { HealthModule } from "./modules/health/health.module";
     WinstonModule.forRoot(winstonConfig),
     ScheduleModule.forRoot(),
     AuthModule,
+    UserManagementModule,
+    CoinModule,
     UserModule,
     JwtModule,
     HealthModule,
